@@ -1,0 +1,40 @@
+
+
+I) Compiler avec GCC
+
+
+
+1) Probleme d'affichage
+
+2) Le -Wall permet d'afficher tous les warnings, on a débuguer les 3 warning
+	1 - probleme avec la fonction gettimeofday : mauvais include
+			dans timer.h  #include <time.h> ------> #include <sys/time.h>
+	2 - dans compute.c problème avec le printf
+			printf("\t%d\t \t%d\t \t%g\n", v1[i], v2[i], v3[i]); ---> printf("\t%d\t \t%d\t \t%d\n", v1[i], v2[i], v3[i]);
+	3 - dans main.c
+			variable inutilisée ----> comment
+
+3) Temps relevé : 3 secondes
+
+
+4) gcc_coa -Wall -O3 compute.c main.c vector.c -o vector.pgr
+	Temps relevé : 0.77 secondes
+
+5) gcc_coa vector.c -shared -fPIC -o libvector.so
+	
+6) export LD_LIBRARY_PATH=`pwd`:$LD_LIBRARY_PATH
+		voir l'énoncé 
+
+
+
+II) Utilisation de Make
+
+
+III) gdb
+
+	gdb ./executable
+
+	run
+	backtrace : bt
+
+	
