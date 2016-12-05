@@ -1,7 +1,5 @@
-all:  plugin_max.so plugin_max.pgr
+all: TP2_1.pgr TP2_2.pgr TP2_5.pgr TP2_7.pgr TP2_8.pgr
 
-
-#TP2_1.pgr
 CPP=g++
 CC=gcc
 
@@ -18,10 +16,6 @@ libplugin.so: plugin_TP2_1.cpp
 %.so: plugin_%.cpp
 	$(CPP) $(PLUGIN_FLAGS) -o $@ $<
 
-plugin_max.so: plugin_max.cpp
-	$(CPP) $(PLUGIN_FLAGS) -o $@ $<
-
-
 %.pgr: %.so test.c
 	gcc test.c $(CFLAGS) -o $@ $(MPI_FLAGS) -fplugin=./$< 
 
@@ -29,4 +23,5 @@ clean:
 	rm -rf *.pgr
 
 clean_all: clean
-	rm -rf *.so *.dot
+	rm -rf libplugin.so *.dot
+

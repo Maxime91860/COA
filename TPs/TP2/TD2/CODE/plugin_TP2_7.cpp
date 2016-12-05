@@ -45,8 +45,7 @@ static void cfgviz_internal_dump( function * fun, FILE * out )
 	fprintf(out, "}\n");
 }
 
-void 
-cfgviz_dump( function * fun, const char * suffix )
+void cfgviz_dump( function * fun, const char * suffix )
 {
 	char * target_filename ; 
 	FILE * out ;
