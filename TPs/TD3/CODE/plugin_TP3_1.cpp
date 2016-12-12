@@ -72,6 +72,49 @@ void function_isol_print(function *fun)
  
 }
 
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD3                        *************************/ 
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+void td3_q1_detect_MPI_CALL (gimple *stmt){
+	tree t ;
+	const char * callee_name ;
+
+	t = gimple_call_fndecl( stmt ) ;
+	callee_name = IDENTIFIER_POINTER(DECL_NAME(t));
+	
+	if(strncmp(callee_name,"MPI_",4) == 0){
+		printf("          |||++|||      - ce gimple statement est un appel mpi\n");
+	}
+}
+
+void td3_q2_detect_MPI_CALL (gimple *stmt){
+
+	tree t ;
+	const char * callee_name ;
+
+	t = gimple_call_fndecl( stmt ) ;
+	callee_name = IDENTIFIER_POINTER(DECL_NAME(t));
+
+	int i;
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
+		if(strcmp(callee_name,mpi_collective_name[i]) == 0){
+			printf("          |||++|||      - ce gimple statement est un appel mpi visé\n");
+		}
+	}
+}
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                     FIN TD3                      *************************/ 
+/****************************************************************************************************/
+/****************************************************************************************************/
+
 
 /****************************************************************************************************/
 /****************************************************************************************************/
@@ -125,9 +168,11 @@ void td2_q8_print_called_functions( basic_block bb )
 
 
 			printf("          |||++|||      - gimple statement is a function call: function called is \" %s \" \n", callee_name);
-
-
+			td3_q1_detect_MPI_CALL(stmt);
+			td3_q2_detect_MPI_CALL(stmt);
 		}
+
+		
 	}
 }
 /******************************/
@@ -285,6 +330,7 @@ cfgviz_dump( function * fun, const char * suffix, int td )
 
 
 
+
 void td2_through_the_cfg(function * fun)
 {
 	td2_q3_q4_print_func_name(fun);
@@ -339,35 +385,11 @@ class my_pass : public gimple_opt_pass
 			/****   TD2 - QUESTION 7   ****/
 			/******************************/
 
-			// cfgviz_dump( fun, "0_ini", /*TD*/2 ) ;
+			cfgviz_dump( fun, "0_ini", /*TD*/2 ) ;
 
 			/******************************/
 			/**   TD2 - FIN QUESTION 7   **/
 			/******************************/
-
-			gimple_stmt_iterator gsi;
-			basic_block bb;
-
-			/* Iterate on gimple statements in the current basic block */
-			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
-			{
-				/* Get the current statement */
-				gimple *stmt = gsi_stmt (gsi);
-
-				if (is_gimple_call (stmt))
-				{
-					tree t ;
-					const char * callee_name ;
-
-					t = gimple_call_fndecl( stmt ) ;
-					callee_name = IDENTIFIER_POINTER(DECL_NAME(t));
-					printf("L'appel de fonction est %s\n",callee_name);
-					if(strncmp(callee_name,"MPI_",4)){
-						printf("Cet appel est un appel MPI.\n");
-					}
-
-				}
-			}
 
 
 
