@@ -72,49 +72,6 @@ void function_isol_print(function *fun)
  
 }
 
-/****************************************************************************************************/
-/****************************************************************************************************/
-/*************************                       TD3                        *************************/ 
-/****************************************************************************************************/
-/****************************************************************************************************/
-
-
-void td3_q1_detect_MPI_CALL (gimple *stmt){
-	tree t ;
-	const char * callee_name ;
-
-	t = gimple_call_fndecl( stmt ) ;
-	callee_name = IDENTIFIER_POINTER(DECL_NAME(t));
-	
-	if(strncmp(callee_name,"MPI_",4) == 0){
-		printf("          |||++|||      - ce gimple statement est un appel mpi\n");
-	}
-}
-
-void td3_q2_detect_MPI_CALL (gimple *stmt){
-
-	tree t ;
-	const char * callee_name ;
-
-	t = gimple_call_fndecl( stmt ) ;
-	callee_name = IDENTIFIER_POINTER(DECL_NAME(t));
-
-	int i;
-	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
-		if(strcmp(callee_name,mpi_collective_name[i]) == 0){
-			printf("          |||++|||      - ce gimple statement est un appel mpi visé : %s\n",mpi_collective_name[i]);
-		}
-	}
-}
-
-
-
-/****************************************************************************************************/
-/****************************************************************************************************/
-/*************************                     FIN TD3                      *************************/ 
-/****************************************************************************************************/
-/****************************************************************************************************/
-
 
 /****************************************************************************************************/
 /****************************************************************************************************/
@@ -168,11 +125,9 @@ void td2_q8_print_called_functions( basic_block bb )
 
 
 			printf("          |||++|||      - gimple statement is a function call: function called is \" %s \" \n", callee_name);
-			td3_q1_detect_MPI_CALL(stmt);
-			td3_q2_detect_MPI_CALL(stmt);
-		}
 
-		
+
+		}
 	}
 }
 /******************************/
@@ -217,6 +172,183 @@ void td2_q5_q6_print_blocks(function * fun)
 /****************************************************************************************************/
 /****************************************************************************************************/
 
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD3                        *************************/ 
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+
+
+/******************************/
+/**** TD3 - QUESTION 1 à 3 ****/
+/******************************/
+
+enum mpi_collective_code td3_q1_q2_q3_is_mpi_call( gimple * stmt, int bb_index)
+{
+	enum mpi_collective_code returned_code ;
+
+	returned_code = LAST_AND_UNUSED_MPI_COLLECTIVE_CODE ;
+
+	if (is_gimple_call (stmt))
+	{
+		tree t ;
+		const char * callee_name ;
+		int i ;
+		bool found = false ;
+
+		t = gimple_call_fndecl( stmt ) ;
+		callee_name = IDENTIFIER_POINTER(DECL_NAME(t)) ;
+
+		i = 0 ;
+		while ( !found && i < LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+		{
+			if ( strncmp( callee_name, mpi_collective_name[i], strlen(
+							mpi_collective_name[i] ) ) == 0 )
+			{
+				found = true ;
+				returned_code = (enum mpi_collective_code) i ;
+			}
+			i++ ;
+		} 
+
+	}
+
+
+	if ( returned_code != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+	{
+		printf( "    -->   |||++||| BB %d [MPI CALL] Found call to %s\n", bb_index, mpi_collective_name[returned_code] ) ;
+	}
+
+	return returned_code ;
+
+
+}
+
+/******************************/
+/** TD3 - FIN QUESTION 1 à 3 **/
+/******************************/
+
+
+
+
+
+/******************************/
+/****   TD3 - QUESTION 5   ****/
+/******************************/
+
+void clean_aux_field( function * fun, long val )
+{
+	basic_block bb; 
+
+	/* Traverse all BBs to clean 'aux' field */
+	FOR_ALL_BB_FN (bb, fun)
+	{
+		bb->aux = (void *)val ;
+	}
+
+}
+/******************************/
+/**   TD3 - FIN QUESTION 5   **/
+/******************************/
+
+
+
+void td3_q1_q2_q3_q4_read_and_mark_mpi(function *fun)
+{
+	basic_block bb;
+	gimple_stmt_iterator gsi;
+	gimple *stmt;
+
+	FOR_EACH_BB_FN(bb,fun)
+	{
+
+		/* Iterate on gimple statements in the current basic block */
+		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+		{
+			
+			/******************************/
+			/**   TD3 - QUESTION 1 à 4   **/
+			/******************************/
+			stmt = gsi_stmt(gsi);
+
+			enum mpi_collective_code c;
+			c = td3_q1_q2_q3_is_mpi_call(stmt, bb->index);
+			if(bb->aux == (void *) LAST_AND_UNUSED_MPI_COLLECTIVE_CODE)
+			{
+				bb->aux = (void *) c ;
+			}
+
+			/******************************/
+			/** TD3 - FIN QUESTION 1 à 4 **/
+			/******************************/
+
+		}	
+	}
+
+}
+
+
+/******************************/
+/****   TD3 - QUESTION 7   ****/
+/******************************/
+
+int td3_q7_get_nb_mpi_calls_in_bb( basic_block bb )
+{
+		gimple_stmt_iterator gsi;
+		int nb_mpi_coll = 0 ;
+
+		for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+		{
+			gimple *stmt = gsi_stmt (gsi); 
+
+			enum mpi_collective_code c ;
+			c = td3_q1_q2_q3_is_mpi_call( stmt, bb->index ) ;
+
+			if ( c != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+			{
+				nb_mpi_coll++ ;
+			}
+		}
+
+		printf( " == BB %d == contains %d MPI collective(s)\n", 
+				bb->index, nb_mpi_coll ) ;
+
+		return nb_mpi_coll ;
+}
+
+bool td3_q7_check_multiple_mpi_calls_per_bb(function *fun)
+{
+	basic_block bb;
+	bool is_multiple_mpi_coll = false;
+	int nb_mpi_coll_in_bb = 0;
+	FOR_EACH_BB_FN (bb, fun)
+	{
+		nb_mpi_coll_in_bb = td3_q7_get_nb_mpi_calls_in_bb(bb);	
+		if(nb_mpi_coll_in_bb > 1){
+			is_multiple_mpi_coll = true;
+		}
+	}
+
+	return is_multiple_mpi_coll;
+}
+
+/******************************/
+/**   TD3 - FIN QUESTION 7   **/
+/******************************/
+
+
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                     FIN TD3                      *************************/ 
+/****************************************************************************************************/
+/****************************************************************************************************/
 
 
 
@@ -268,11 +400,76 @@ static void cfgviz_internal_dump( function * fun, FILE * out, int td )
 		// Print the basic block BB, with the MPI call if necessary
 		//
 
-		fprintf( out,
-				"%d [label=\"BB %d\" shape=ellipse]\n",
-				bb->index,
-				bb->index
-		       ) ;
+		/******************************/
+		/****   TD3 - QUESTION 6   ****/
+		/******************************/
+
+
+		if(td == 3 && (long)bb->aux != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE)
+		{
+			fprintf( out,
+					"%d [label=\"BB %d", bb->index,	bb->index);
+
+			gimple_stmt_iterator gsi;
+			gimple * stmt;
+			gsi = gsi_start_bb(bb);
+			stmt = gsi_stmt(gsi);
+
+			/* Iterate on gimple statements in the current basic block */
+			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+			{
+
+				stmt = gsi_stmt(gsi);
+
+				enum mpi_collective_code returned_code ;
+
+				returned_code = LAST_AND_UNUSED_MPI_COLLECTIVE_CODE ;
+
+				if (is_gimple_call (stmt))
+				{
+					tree t ;
+					const char * callee_name ;
+					int i ;
+					bool found = false ;
+
+					t = gimple_call_fndecl( stmt ) ;
+					callee_name = IDENTIFIER_POINTER(DECL_NAME(t)) ;
+
+					i = 0 ;
+					while ( !found && i < LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+					{
+						if ( strncmp( callee_name, mpi_collective_name[i], strlen(
+										mpi_collective_name[i] ) ) == 0 )
+						{
+							found = true ;
+							returned_code = (enum mpi_collective_code) i ;
+						}
+						i++ ;
+					} 
+
+				}
+
+
+				if ( returned_code != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+				{
+					fprintf( out, " \\n %s", mpi_collective_name[returned_code] ) ;
+				}
+			}
+
+			fprintf(out, "\" shape=ellipse]\n");
+
+		}
+		/******************************/
+		/**** TD3 - FIN QUESTION 6 ****/
+		/******************************/
+		else
+		{
+			fprintf( out,
+					"%d [label=\"BB %d\" shape=ellipse]\n",
+					bb->index,
+					bb->index
+			       ) ;
+		}
 
 		//
 		// Process output edges 
@@ -330,11 +527,19 @@ cfgviz_dump( function * fun, const char * suffix, int td )
 
 
 
-
 void td2_through_the_cfg(function * fun)
 {
 	td2_q3_q4_print_func_name(fun);
 	td2_q5_q6_print_blocks(fun);
+}
+
+
+void td3_mpi_in_blocks(function * fun)
+{
+	td3_q1_q2_q3_q4_read_and_mark_mpi(fun);
+	cfgviz_dump( fun, "1_mpi", /*TD*/3 ) ;
+	td3_q7_check_multiple_mpi_calls_per_bb(fun);
+	
 }
 
 
@@ -391,7 +596,37 @@ class my_pass : public gimple_opt_pass
 			/**   TD2 - FIN QUESTION 7   **/
 			/******************************/
 
+			/******************************/
+			/**********   TD3   ***********/
+			/******************************/
 
+			td_isol_print(/*TD*/3);
+
+			/******************************/
+			/****   TD3 - QUESTION 5   ****/
+			/******************************/
+			clean_aux_field(fun, LAST_AND_UNUSED_MPI_COLLECTIVE_CODE);
+			/******************************/
+			/**   TD3 - FIN QUESTION 5   **/
+			/******************************/
+
+
+			td3_mpi_in_blocks(fun);
+
+			/******************************/
+			/********** FIN TD3 ***********/
+			/******************************/
+
+
+
+
+			/******************************/
+			/****   TD3 - QUESTION 5   ****/
+			/******************************/
+			clean_aux_field(fun, 0);
+			/******************************/
+			/**   TD3 - FIN QUESTION 5   **/
+			/******************************/
 
 
 			return 0;
