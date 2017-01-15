@@ -1,0 +1,278 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{graphicx, subfigure}
+\usepackage{amssymb,amstext,amsmath, array,textpos, url, hyperref, enumerate, listings, colortbl }
+\usepackage{chngpage}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{algorithmic, algorithm}
+\usepackage[french]{babel}
+\usepackage{xcolor}
+\definecolor{graybg}{gray}{0.85}
+\definecolor{graybg2}{gray}{0.90}
+\definecolor{graybg3}{gray}{0.95}
+\pagestyle{plain}
+\bibliographystyle{alpha}
+\usepackage{verbatim}
+
+\def\thesection       {\Roman{section}}
+\def\thesubsection       {\arabic{subsection}}
+
+
+\lstset{extendedchars=false}
+\lstset{language=c}
+\lstset{% general command to set parameter(s)
+		basicstyle=\scriptsize,          % print whole listing small
+		keywordstyle=\color{blue}\bfseries,
+		frameround=tttt,
+		commentstyle=\color{red},
+		frame=single,
+		numbers=left,
+		stringstyle=\ttfamily,      % typewriter type for strings
+			showstringspaces=false}     % no special string spaces
+			%/LISTINGS
+
+% Exercice number
+\newcounter{numexos}%Création d'un compteur qui s'appelle numexos
+\setcounter{numexos}{0}%initialisation du compteur
+\newcommand{\exercice}[1]%
+{%Création d'une macro ayant un paramètre
+  \addtocounter{numexos}{1}%chaque fois que cette macro est appelée, elle ajoute 1 au compteur numexos
+  \paragraph{Q.\thenumexos:}%
+	{#1} %Met en rouge Exercice et la valeur du compteur appelée par \thenumeexos
+}
+
+%Correction
+\newcommand{\sectioncorrection}[1]%
+{
+\ifx\tpcorrection \undefined %
+\else %
+\begin{center}
+\textcolor{red}{Correction} \\
+\fcolorbox{black}{graybg}{
+\begin{minipage}{0.9\textwidth}
+	{#1} 
+\end{minipage}
+}
+\end{center}
+\fi
+}
+
+% Guillemets
+\newcommand{\ofg}[1]{\og{#1\fg{}}}
+
+% Correction
+
+% comment out above definition of todo
+
+\newboolean{reponse}
+\setboolean{reponse}{true}
+\ifthenelse{\boolean{reponse}}
+{
+  \newenvironment{correction}
+  {\color{red} \small}
+  {\color{black} \normalsize}
+}{
+\newsavebox{\trashcan}
+\newenvironment{correction}
+  {\begin{lrbox}{\trashcan}}
+  {\end{lrbox}}
+}
+
+\newenvironment{tip}
+	{	\fbox\{\begin{minipage}{1\textwidth} \includegraphics[width=0.8cm]{../tips.png}}
+	{	\end{minipage}\} }
+%  {\vspace{10pt} \begin{fbox} \begin{minipage}{1\textwidth} \includegraphics[width=0.8cm]{../tips.png}}
+%  {\end{minipage}\end{fbox}}
+
+\begin{document}
+
+\changepage{3cm}%amount added to textheight
+{1cm}%amount added to textwidth
+{-1cm}%amount added to evensidemargin
+{-1cm}%amount added to oddsidemargin
+{}%amount added to columnsep
+{-2cm}%amount added to topmargin
+{}%amount added to headheight
+{}%amount added to headsep
+{}%amount added to footskip
+
+
+\vspace{0.1\textheight}
+
+\begin{tabular}{m{0.4\textwidth}m{0.6\textwidth}}
+
+  \begin{center}
+    \includegraphics[width=5.5cm]{uvsq-logo-cmjn.jpg}
+  \end{center}
+
+  &
+
+  \begin{center}
+ 	\LARGE{\textbf{M2 - Compilation Avanc\'{e}e}} \\
+	\large{(CPA 2016-2017)} \\
+	\Huge{TD6} \\
+	\Large{Cr\'eation d'une nouvelle directive} \\
+	\Large{avec plugin GCC} \\
+	\large{~}\\
+    	\small{
+	\url{hugo.brunie.ocre@cea.fr}\\
+	\url{julien.jaeger@cea.fr}\\
+    	\url{patrick.carribault@cea.fr}}\\
+
+  \end{center}
+  \\
+\end{tabular}
+
+
+\section{D\'eclaration d'une simple directive}
+
+Le but de cette partie est de r\'ecup\'erer les informations contenues dans la
+directive \`a partir d'un plugin GCC.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 1 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{En vous aidant de la documentation sur les plugins GCC, d\'eclarer une
+nouvelle directive. Cette directive servira \`a d\'efinir le nom d'une fonction sur
+laquelle nous souhaiterons appliquer un traitement sp\'ecial \`a partir d'une nouvelle passe. 
+Dans un premier temps et \`a partir de la fonction pass\'ee \`a la fonction
+\textit{c\_register\_pragma}, affichez uniquement un message lorsque le nouveau pragma
+est reconnu.
+
+Cette directive sera utilis\'ee de la mani\`ere suivante dans le code qui l'exploitera :\\
+\texttt{\#pragma instrument function ma\_fonction}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 1 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP56\_1.cpp}. }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 2 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{En vous inspirant de la fonction \textit{handle\_pragma\_target} pr\'esent dans le fichier
+\texttt{c-family/c-pragma.c}, afficher uniquement le nom de la fonction annot\'ee lorsque l'argument du pragma
+est de type \texttt{CPP\_NAME}. 
+}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 2 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP56\_2.cpp}. }
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 3 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{\'Etender maintenant cette directive pour g\'erer plusieurs noms de fonction.
+Toujours en vous inspirant de la fonction \textit{handle\_pragma\_target}, parser et afficher ces noms.  
+
+Cette directive pourrait \^etre utilis\'ee de la mani\`ere suivante dans le code qui l'exploitera :\\
+\texttt{\#pragma instrument function(f1,f2,f3,f4)}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 3 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{On commence par v\'erifier si le premier token est une parenth\`ese ouvrante.
+Ensuite on affiche le premier nom. Si on a rencontr\'e une parenth\`ese ouvrante, alors il peut y avoir une liste
+de nom: on lit les virgules de s\'eparations. Une fois la liste finie, on doit trouver une parenth\`ese fermante.
+On renvoie un message d'erreur si le format n'est pas valide (\texttt{\#pragma instrumente function NAME} ou 
+\texttt{\#pragma instrumente function (NAME1,NAME2,...)} ). Voir fichier \textbf{plugin\_TP6\_3.cpp}. }
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 4 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{Toujours en vous inspirant du fichier \texttt{c-family/c-pragma.c}, rajouter un test
+dans le traitement de la directive, afin de v\'erifier qu'elle a bien \'et\'e plac\'ee \`a l'ext\'erieur 
+d'une fonction. Retournez une erreur dans le cas contraire.
+}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 4 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP56\_4.cpp}. }
+
+
+\section{Interaction avec une passe}
+
+Nous souhaitons maintenant que notre directive puisse interagir avec une passe.
+Pour ce faire, nous allons enregistrer les noms des fonctions pass\'ees par la directive
+dans une liste d\'efinie en variable globale du plugin.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 5 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{Construire cette liste en utilisant la structure vecteur d\'efinie dans le fichier
+\texttt{vec.h} des sources GCC. Afficher le contenu de ce vecteur apr\`es chaque pragma.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 5 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{D\'eclaration d'un vecteur global de \texttt{char *}. Utilisation de \textit{safe\_push}
+pour ins\'erer les noms dans le vecteur. Voir fichier \textbf{plugin\_TP56\_5.cpp}. }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 6 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{Pour le moment, certains noms pr\'esents dans des pragmas non-valides sont ins\'er\'es dans la liste.
+N'ins\'erer que les noms pr\'esents dans les pragmas valides. V\'erifier qu'un nom de fonction n'a pas \'et\'e utilis\'e plus d'une
+fois dans la directive. Si c'est le cas, afficher un warning.}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 6 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{D\'eclaration d'un vecteur temporaire de \texttt{char *}. On ne reverse les noms de ce vecteur dans le vecteur global
+que si le pragma a \'et\'e valid\'e. On profite de la copie pour v\'erifier que le nom de la fonction n'est pas d\'ej\`a pr\'sente dans le vecteur.
+Voir fichier \textbf{plugin\_TP56\_6.cpp}. }
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 7 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{En vous aidant des TDs pr\'ec\'edents, cr\'eer une passe qui affiche le nom de
+chaque fonction. Modifiez la gate pour que cette passe soit activ\'ee seulement si le
+nom de la fonction est contenue dans la liste globale.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 7 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{On reprend ce qu'on a fait dans le TD2 q3. Seul changement: la fonction gate ne renvoie plus \texttt{true}. 
+On r\'ecup\`re le nom de la fonction courante sour forme de \texttt{char *}, et on renvoie la valeur de la fonction \textit{already\_pushed}
+de la question pr\'ec\'edente.
+Voir fichier \textbf{plugin\_TP56\_7.cpp}. }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 8 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{En quittant GCC, v\'erifiez que tous les noms de fonction contenus dans la
+liste globale ont \'et\'e utilis\'es. Dans le cas contraire, affichez un warning sur les noms
+restants. Il s'agit probablement de fonctions non-d\'efinies dans le code annot\'e.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 8 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{On enregistre un nouveau callback avec en argument de position \texttt{PLUGIN\_FINISH} et la fonction \textit{plugin\_finalize}.
+On modifie la gate pour enlever du vecteur les noms de fonctions trouv\'ees \`a la compilation.
+Dans la fonction \textit{plugin\_finalize}, on v\'erifie la taille du vecteur global. Si il n'est pas nul, alors il reste des arguments
+que l'on a pas rencontr\'e. On les affiche. 
+Voir fichier \textbf{plugin\_TP56\_8.cpp}. }
+
+
+
+
+}
+
+
+\end{document}

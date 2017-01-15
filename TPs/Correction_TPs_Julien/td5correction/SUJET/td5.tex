@@ -1,0 +1,195 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage{graphicx, subfigure}
+\usepackage{amssymb,amstext,amsmath, array,textpos, url, hyperref, enumerate, listings, colortbl }
+\usepackage{chngpage}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{algorithmic, algorithm}
+\usepackage[french]{babel}
+\usepackage{xcolor}
+\definecolor{graybg}{gray}{0.85}
+\definecolor{graybg2}{gray}{0.90}
+\definecolor{graybg3}{gray}{0.95}
+\pagestyle{plain}
+\bibliographystyle{alpha}
+\usepackage{verbatim}
+
+\def\thesection       {\Roman{section}}
+\def\thesubsection       {\arabic{subsection}}
+
+
+\lstset{extendedchars=false}
+\lstset{language=c}
+\lstset{% general command to set parameter(s)
+		basicstyle=\scriptsize,          % print whole listing small
+		keywordstyle=\color{blue}\bfseries,
+		frameround=tttt,
+		commentstyle=\color{red},
+		frame=single,
+		numbers=left,
+		stringstyle=\ttfamily,      % typewriter type for strings
+			showstringspaces=false}     % no special string spaces
+			%/LISTINGS
+
+% Exercice number
+\newcounter{numexos}%Création d'un compteur qui s`appelle numexos
+\setcounter{numexos}{0}%initialisation du compteur
+\newcommand{\exercice}[1]%
+{%Création d'une macro ayant un paramètre
+  \addtocounter{numexos}{1}%chaque fois que cette macro est appelée, elle ajoute 1 au compteur numexos
+  \paragraph{Q.\thenumexos:}%
+	{#1} %Met en rouge Exercice et la valeur du compteur appelée par \thenumeexos
+}
+
+%Correction
+\newcommand{\sectioncorrection}[1]%
+{
+\ifx\tpcorrection \undefined %
+\else %
+\begin{center}
+\textcolor{red}{Correction} \\
+\fcolorbox{black}{graybg}{
+\begin{minipage}{0.9\textwidth}
+	{#1} 
+\end{minipage}
+}
+\end{center}
+\fi
+}
+
+% Guillemets
+\newcommand{\ofg}[1]{\og{#1\fg{}}}
+
+% Correction
+
+% comment out above definition of todo
+
+\newboolean{reponse}
+\setboolean{reponse}{true}
+\ifthenelse{\boolean{reponse}}
+{
+  \newenvironment{correction}
+  {\color{red} \small}
+  {\color{black} \normalsize}
+}{
+\newsavebox{\trashcan}
+\newenvironment{correction}
+  {\begin{lrbox}{\trashcan}}
+  {\end{lrbox}}
+}
+
+\newenvironment{tip}
+	{	\fbox\{\begin{minipage}{1\textwidth} \includegraphics[width=0.8cm]{../tips.png}}
+	{	\end{minipage}\} }
+%  {\vspace{10pt} \begin{fbox} \begin{minipage}{1\textwidth} \includegraphics[width=0.8cm]{../tips.png}}
+%  {\end{minipage}\end{fbox}}
+
+\begin{document}
+
+\changepage{3cm}%amount added to textheight
+{1cm}%amount added to textwidth
+{-1cm}%amount added to evensidemargin
+{-1cm}%amount added to oddsidemargin
+{}%amount added to columnsep
+{-2cm}%amount added to topmargin
+{}%amount added to headheight
+{}%amount added to headsep
+{}%amount added to footskip
+
+
+
+\vspace{0.1\textheight}
+
+\begin{tabular}{m{0.4\textwidth}m{0.6\textwidth}}
+
+  \begin{center}
+    \includegraphics[width=5.5cm]{uvsq-logo-cmjn.jpg}
+  \end{center}
+
+  &
+
+  \begin{center}
+ 	\LARGE{\textbf{M2 - Compilation Avanc\'{e}e}} \\
+	\large{(COA 2016-2017)} \\
+	\Huge{TD5} \\%\large{(1 s\'eance) }\\
+	\Large{Dominance et Post-dominance} \\
+	\large{~}\\
+    	\small{
+	\url{hugo.brunie.ocre@cea.fr}\\
+	\url{julien.jaeger@cea.fr}\\
+    	\url{patrick.carribault@cea.fr}}\\
+
+  \end{center}
+  \\
+\end{tabular}
+
+
+\section{Post-dominance it\'er\'ee et warnings}
+Dans le TP pr\'ec\'edent, nous avons calcul\'e et affich\'e la fronti\`ere de post-dominance avec nos propres structures.
+Dans ce TPs, nous allons nous servir des structures de gcc pour calculer la fronti\`ere de post-dominance et la fronti\`ere de post-dominance it\'er\'ee afin d'afficher un warning sur les n\oe{}uds provoquant un probl\`eme potentiel.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 1 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{Chercher la fonction \textit{compute\_dominance\_frontiers} dans les sources de gcc. Utiliser les bitmaps pour calculer et afficher la fronti\`ere de post-dominance de chaque basic block. 
+}
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 1 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP5\_1.cpp}. }
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 2 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{A partir de ces PDFs, calculer la PDF d'un ensemble de n\oe{}uds.}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 2 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP5\_2.cpp}. }
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 3 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{Apr\`s avoir v\'erifi\'e la PDF de l'ensemble des n\oe{}uds avec un appel MPI, afficher un message pour dire si il y a un probl\`eme ou non.}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION  3 %%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP5\_3.cpp}}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 4 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{A partir de cette derni\`ere PDF, calculer la PDF it\'er\'ee. Pour cela, il faut remonter l'arbre des BBs selon leur PDF jusqu\`a arriver \`a un \'etat stable.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 4 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP5\_3.cpp}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% QUESTION 5 %%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\exercice{A partir de cette PDF it\'er\'ee, afficher les basic blocks et les lignes de codes g\'en\'erant le probl\`eme potentiel.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%%% CORRECTION 5 %%%%
+%%%%%%%%%%%%%%%%%%%%%%
+\sectioncorrection{Voir fichier \textbf{plugin\_TP5\_5.cpp}}
+
+
+\end{document}
