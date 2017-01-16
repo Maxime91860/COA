@@ -1130,7 +1130,7 @@ void td5_bitmap_and_pdf_it(function * fun)
 	FOR_ALL_BB_FN (bb, cfun)
 	{
 		for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
-			if ( bb->aux != (void *) i) 
+			if ( bb->aux == (void *) i) 
 			{
 				bitmap_set_bit( &mpi_set[i], bb->index ) ;
 			}
@@ -1140,7 +1140,7 @@ void td5_bitmap_and_pdf_it(function * fun)
 	/* Print the bitmap containing nodes with MPI calls */
 	printf( "MPI node set: ") ;
 	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
-		fprintf(stdout, "Collective #%d\n", i);
+		fprintf(stdout, "Collective %s\n", mpi_collective_name[i]);
 		fflush(stdout);
 		bitmap_print( stdout, &mpi_set[i], "", "\n" ) ;
 	}
@@ -1148,7 +1148,8 @@ void td5_bitmap_and_pdf_it(function * fun)
 	bitmap_head pdf_set;
 	bitmap_initialize (&pdf_set, &bitmap_default_obstack);
 
-	td5_q2_bitmap_set_post_dominance_frontiers(mpi_set, pfrontiers, &pdf_set, fun);
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
+		td5_q2_bitmap_set_post_dominance_frontiers(mpi_set[i], pfrontiers, &pdf_set, fun);
 
 	printf( "Pdf for MPI node set: ") ;
 	bitmap_print( stdout, &pdf_set, "", "\n" ) ;
