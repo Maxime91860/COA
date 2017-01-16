@@ -1215,6 +1215,26 @@ void td5_bitmap_and_pdf_it(function * fun)
 	/******************************/
 
 
+	/******************************/
+	/**   TD7 - QUESTION 2   **/
+	/******************************/
+	//Construction Argument 1 - Chaine de caractère, nom de l'appel
+	tree mystring_tree = fix_string_type( build_string (strlen(strlen(mpi_collective_name[i]) + 1, mpi_collective_name[i]) ) );
+	tree mystring_type = build_pointer_type( TREE_TYPE (TREE_TYPE (mystring_tree) );
+	tree mystring_args_tree = build1( ADDR_EXPR, mystring_type, mystring_tree);
+
+	//Construction Argument 2 - Chaine de caractère, warning
+	tree mystring_tree = fix_string_type( build_string (strlen(<mystring> + 1, <mystring>) ) );
+	tree mystring_type = build_pointer_type( TREE_TYPE (TREE_TYPE (mystring_tree) );
+	tree mystring_args_tree2 = build1( ADDR_EXPR, mystring_type, mystring_tree);
+	
+
+	gimple_build_call(built_in_decls(BUILT_IN_PRINTF),2, mystring_args_tree, mystring_args_tree2);
+	/******************************/
+	/**   TD7 - FIN QUESTION 2   **/
+	/******************************/	
+
+
 	printf("\n\n================== FIN ==================\n\n");
 }
 
