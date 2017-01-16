@@ -814,27 +814,30 @@ td5_q4_iterated_post_dominance(bitmap_head pdf_node_set, bitmap_head *pdf, bitma
 /******************************/
 
 void                                                                      
-td5_q5_issue_warnings (bitmap_head ipdf_set, function * fun)
+td5_q5_issue_warnings (bitmap_head ipdf_set[], function * fun)
 {
 	basic_block bb;
 	gimple_stmt_iterator gsi;
 	gimple *stmt;
 
+	int i;
 
-
-	printf("\n\n\----------- WHICH LINES ---------\n\n\n");
-
-	FOR_EACH_BB_FN( bb, fun )
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
 	{
-		if(bitmap_bit_p(&ipdf_set, bb->index))
+		printf("\n\n\----------- Problems for %s ---------\n\n\n", mpi_collective_name[i]);
+
+		FOR_EACH_BB_FN( bb, fun )
 		{
-			gsi = gsi_start_bb(bb);
-			stmt = gsi_stmt(gsi);
-			
-			printf("/!\\ /!\\ /!\\ Basic Block  %d  (line %d) might cause an issue\n", bb->index, gimple_lineno(stmt)); 
+			if(bitmap_bit_p(&ipdf_set[i], bb->index))
+			{
+				gsi = gsi_start_bb(bb);
+				stmt = gsi_stmt(gsi);
+
+				printf("/!\\ /!\\ /!\\ Basic Block  %d  (line %d) might cause an issue\n", bb->index, gimple_lineno(stmt)); 
+			}
 		}
 	}
-	
+
 }
 /******************************/
 /**   TD5 - FIN QUESTION 5   **/
@@ -846,8 +849,6 @@ td5_q5_issue_warnings (bitmap_head ipdf_set, function * fun)
 /*************************                     FIN TD5                      *************************/ 
 /****************************************************************************************************/
 /****************************************************************************************************/
-
-
 
 
 /****************************************************************************************************/
@@ -1118,88 +1119,85 @@ void td5_bitmap_and_pdf_it(function * fun)
 
 
 	/******************************/
-	/****   TD5 - QUESTION 2   ****/
+	/****   TD7 - QUESTION 1   ****/
 	/******************************/
+	bitmap_head ipdf_set[LAST_AND_UNUSED_MPI_COLLECTIVE_CODE];
 
-	/* Compute the set regrouping nodes with MPI calls */
 	int i;
-	bitmap_head mpi_set [LAST_AND_UNUSED_MPI_COLLECTIVE_CODE];
 	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
-		bitmap_initialize( &mpi_set[i],  &bitmap_default_obstack);
+	{ 
 
-	FOR_ALL_BB_FN (bb, cfun)
-	{
-		for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
+		bitmap_initialize (&ipdf_set[i], &bitmap_default_obstack);
+
+
+		/******************************/
+		/****   TD5 - QUESTION 2   ****/
+		/******************************/
+
+		/* Compute the set regrouping nodes with MPI calls */
+		bitmap_head mpi_set ;
+		bitmap_initialize( &mpi_set,  &bitmap_default_obstack);
+
+		FOR_ALL_BB_FN (bb, cfun)
+		{
 			if ( bb->aux == (void *) i) 
 			{
-				bitmap_set_bit( &mpi_set[i], bb->index ) ;
+				bitmap_set_bit( &mpi_set, bb->index ) ;
 			}
 		}
+
+		/* Print the bitmap containing nodes with MPI calls */
+		printf( "MPI node set: ") ;
+		bitmap_print( stdout, &mpi_set, "", "\n" ) ;
+
+		bitmap_head pdf_set;
+		bitmap_initialize (&pdf_set, &bitmap_default_obstack);
+
+		td5_q2_bitmap_set_post_dominance_frontiers(mpi_set, pfrontiers, &pdf_set, fun);
+
+		printf( "Pdf for MPI node set: ") ;
+		bitmap_print( stdout, &pdf_set, "", "\n" ) ;
+
+
+		/******************************/
+		/**   TD5 - FIN QUESTION 2   **/
+		/******************************/
+
+
+		/******************************/
+		/****   TD5 - QUESTION 3   ****/
+		/******************************/
+
+		/* if the PDF of the set it not empty => issues! */
+		if ( bitmap_count_bits( &pdf_set ) == 0 )
+		{
+			printf( "NO " ) ;
+		} 
+		printf( "ISSUES WITH MPI CALLS : %s\n", mpi_collective_name[i] ) ;
+
+		/******************************/
+		/**   TD5 - FIN QUESTION 3   **/
+		/******************************/
+
+
+
+
+
+		/******************************/
+		/****   TD5 - QUESTION 4   ****/
+		/******************************/
+
+		td5_q4_iterated_post_dominance(pdf_set, pfrontiers, &ipdf_set[i], fun);
+
+		printf( "\n\nIterated PDF for call -- %s -- MPI node set: ", mpi_collective_name[i]) ;
+		bitmap_print( stdout, &ipdf_set[i], "", "\n" ) ;
+
+		/******************************/
+		/**   TD5 - FIN QUESTION 4   **/
+		/******************************/
+
+
 	}
-
-	/* Print the bitmap containing nodes with MPI calls */
-	printf( "MPI node set: ") ;
-	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
-		fprintf(stdout, "Collective %s\n", mpi_collective_name[i]);
-		fflush(stdout);
-		bitmap_print( stdout, &mpi_set[i], "", "\n" ) ;
-	}
-
-	bitmap_head pdf_set;
-	bitmap_initialize (&pdf_set, &bitmap_default_obstack);
-
-	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
-		td5_q2_bitmap_set_post_dominance_frontiers(mpi_set[i], pfrontiers, &pdf_set, fun);
-
-	printf( "Pdf for MPI node set: ") ;
-	bitmap_print( stdout, &pdf_set, "", "\n" ) ;
-
-
-	/******************************/
-	/**   TD5 - FIN QUESTION 2   **/
-	/******************************/
-
-
-	/******************************/
-	/****   TD5 - QUESTION 3   ****/
-	/******************************/
-
-	/* if the PDF of the set it not empty => issues! */
-	if ( bitmap_count_bits( &pdf_set ) > 0 )
-	{
-		printf( "ISSUES WITH MPI CALLS\n" ) ;
-	} 
-	else
-	{
-		printf( "NO ISSUES WITH MPI CALLS\n" ) ;
-	}
-
-	/******************************/
-	/**   TD5 - FIN QUESTION 3   **/
-	/******************************/
-
-
-
-
-
-	/******************************/
-	/****   TD5 - QUESTION 4   ****/
-	/******************************/
-
-	bitmap_head ipdf_set;
-	bitmap_initialize (&ipdf_set, &bitmap_default_obstack);
-
-	td5_q4_iterated_post_dominance(pdf_set, pfrontiers, &ipdf_set, fun);
-
-	printf( "\n\nIterated PDF fo MPI node set: ") ;
-	bitmap_print( stdout, &ipdf_set, "", "\n" ) ;
-
-	/******************************/
-	/**   TD5 - FIN QUESTION 4   **/
-	/******************************/
-
-
-
 
 	/******************************/
 	/****   TD5 - QUESTION 5   ****/
@@ -1211,6 +1209,10 @@ void td5_bitmap_and_pdf_it(function * fun)
 	/**   TD5 - FIN QUESTION 5   **/
 	/******************************/
 
+
+	/******************************/
+	/**   TD7 - FIN QUESTION 1   **/
+	/******************************/
 
 
 	printf("\n\n================== FIN ==================\n\n");
