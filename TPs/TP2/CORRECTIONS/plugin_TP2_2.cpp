@@ -31,8 +31,7 @@ const pass_data my_pass_data =
 class my_pass : public gimple_opt_pass
 {
 	public:
-		my_pass (gcc::context *ctxt)
-			: gimple_opt_pass (my_pass_data, ctxt)
+		my_pass (gcc::context *ctxt): gimple_opt_pass (my_pass_data, ctxt)
 		{}
 
 		/* opt_pass methods: */
@@ -70,9 +69,7 @@ class my_pass : public gimple_opt_pass
 
 
 /* Main entry point for plugin */
-	int 
-plugin_init(struct plugin_name_args * plugin_info, 
-		struct plugin_gcc_version * version)
+int plugin_init(struct plugin_name_args * plugin_info, 	struct plugin_gcc_version * version)
 {
 	struct register_pass_info my_pass_info;
 
@@ -96,10 +93,7 @@ plugin_init(struct plugin_name_args * plugin_info,
 	my_pass_info.pos_op = PASS_POS_INSERT_AFTER;
 
 	/* Add my pass to the pass manager */
-	register_callback(plugin_info->base_name, 
-			PLUGIN_PASS_MANAGER_SETUP, 
-			NULL, 
-			&my_pass_info);
+	register_callback(plugin_info->base_name, PLUGIN_PASS_MANAGER_SETUP, NULL, &my_pass_info);
 
 	printf( "plugin_init: Pass added...\n" ) ;
 

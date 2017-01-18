@@ -120,18 +120,16 @@ void td2_q8_print_called_functions( basic_block bb )
 
 }
 
-
+/******************************/
+/**** TD2 - QUESTION 5 & 6 ****/
+/******************************/
 void td2_q5_q6_print_blocks(function * fun)
 {
-	/******************************/
-	/**** TD2 - QUESTION 5 & 6 ****/
-	/******************************/
-
 	basic_block bb;
 	gimple_stmt_iterator gsi;
 	gimple *stmt;
 
-	//            FOR_ALL_BB_FN(bb,fun)
+	//FOR_ALL_BB_FN(bb,fun)
 	FOR_EACH_BB_FN(bb,fun)
 	{
 		gsi = gsi_start_bb(bb);
@@ -141,37 +139,31 @@ void td2_q5_q6_print_blocks(function * fun)
 		td2_q8_print_called_functions(bb);
 
 	}
-
-	/******************************/
-	/** TD2 - FIN QUESTION 5 & 6 **/
-	/******************************/
-
 }
+/******************************/
+/** TD2 - FIN QUESTION 5 & 6 **/
+/******************************/
 
 
-
+/******************************/
+/**** TD2 - QUESTION 3 & 4 ****/
+/******************************/
 const char * print_func_name(function * fun)
 {
-    /******************************/
-    /**** TD2 - QUESTION 3 & 4 ****/
-    /******************************/
-
-//            const char * fname = fndecl_name(fun->decl);
-            const char * fname = function_name(fun);
-//            const char * fname = current_function_name();
-            printf("\t ... in function %s\n", fname);
-
-    /******************************/
-    /** TD2 - FIN QUESTION 3 & 4 **/
-    /******************************/
+	//const char * fname = fndecl_name(fun->decl);
+    const char * fname = function_name(fun);
+	//const char * fname = current_function_name();
+    printf("\t ... in function %s\n", fname);
 	return fname;
 }
+/******************************/
+/** TD2 - FIN QUESTION 3 & 4 **/
+/******************************/
 
 
-    /******************************/
-    /****   TD2 - QUESTION 7   ****/
-    /******************************/
-
+/******************************/
+/****   TD2 - QUESTION 7   ****/
+/******************************/
 /* Build a filename (as a string) based on function name */
 static char * cfgviz_generate_filename( function * fun, const char * suffix )
 {
@@ -233,8 +225,7 @@ static void cfgviz_internal_dump( function * fun, FILE * out )
 	fprintf(out, "}\n");
 }
 
-void 
-cfgviz_dump( function * fun, const char * suffix )
+void cfgviz_dump( function * fun, const char * suffix )
 {
 	char * target_filename ; 
 	FILE * out ;
@@ -251,10 +242,9 @@ cfgviz_dump( function * fun, const char * suffix )
 	fclose( out ) ;
 	free( target_filename ) ;
 }
-
-    /******************************/
-    /**   TD2 - FIN QUESTION 7   **/
-    /******************************/
+/******************************/
+/**   TD2 - FIN QUESTION 7   **/
+/******************************/
 
 
 
@@ -296,18 +286,15 @@ class my_pass : public gimple_opt_pass
 
 			td2_q5_q6_print_blocks(fun);	
 
-    /******************************/
-    /****   TD2 - QUESTION 7   ****/
-    /******************************/
+		    /******************************/
+		    /****   TD2 - QUESTION 7   ****/
+		    /******************************/
    			cfgviz_dump( fun, "0_ini" ) ;
-    /******************************/
-    /**   TD2 - FIN QUESTION 7   **/
-    /******************************/
+		    /******************************/
+		    /**   TD2 - FIN QUESTION 7   **/
+		    /******************************/
 
- 
-
-
-            			return 0;
+            return 0;
 		}
 
 
@@ -316,9 +303,7 @@ class my_pass : public gimple_opt_pass
 
 
 /* Main entry point for plugin */
-	int 
-plugin_init(struct plugin_name_args * plugin_info, 
-		struct plugin_gcc_version * version)
+int plugin_init(struct plugin_name_args * plugin_info, struct plugin_gcc_version * version)
 {
 	struct register_pass_info my_pass_info;
 
@@ -334,18 +319,14 @@ plugin_init(struct plugin_name_args * plugin_info,
 	/* Declare and build my new pass */
 	my_pass p(g);
 
-	/* Fill info on my pass 
-	 (insertion after the pass building the CFG) */
+	/* Fill info on my pass (insertion after the pass building the CFG) */
 	my_pass_info.pass = &p;
 	my_pass_info.reference_pass_name = "cfg";
 	my_pass_info.ref_pass_instance_number = 0;
 	my_pass_info.pos_op = PASS_POS_INSERT_AFTER;
 
 	/* Add my pass to the pass manager */
-	register_callback(plugin_info->base_name, 
-			PLUGIN_PASS_MANAGER_SETUP, 
-			NULL, 
-			&my_pass_info);
+	register_callback(plugin_info->base_name, PLUGIN_PASS_MANAGER_SETUP, NULL, &my_pass_info);
 
 	printf( "plugin_init: Pass added...\n" ) ;
 

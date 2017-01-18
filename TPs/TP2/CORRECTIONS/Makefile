@@ -1,4 +1,5 @@
-all: TP2_1.pgr TP2_2.pgr TP2_5.pgr TP2_7.pgr TP2_8.pgr
+all: TP2_1.pgr
+	 #TP2_2.pgr TP2_5.pgr TP2_7.pgr TP2_8.pgr
 
 CPP=g++
 CC=gcc
