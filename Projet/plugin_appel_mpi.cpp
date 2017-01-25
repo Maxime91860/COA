@@ -221,6 +221,196 @@ void mpi_in_blocks(function * fun)
 //------------------------------------------------------------------------//
 //------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------//
+//---------------------- FONCTIONS WARNING -------------------------------//
+//------------------------------------------------------------------------//
+
+void issue_warnings (bitmap_head ipdf_set[], function * fun)
+{
+	basic_block bb;
+	gimple_stmt_iterator gsi;
+	gimple *stmt;
+
+	int i;
+
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
+	{	
+		if ( bitmap_count_bits( &ipdf_set[i] ) == 0 )
+		{
+			continue;
+		} 	
+		printf("\n\n----------- Problems for %s ---------\n\n", mpi_collective_name[i]);
+
+		FOR_EACH_BB_FN( bb, fun )
+		{
+			if(bitmap_bit_p(&ipdf_set[i], bb->index))
+			{
+				gsi = gsi_start_bb(bb);
+				stmt = gsi_stmt(gsi);
+
+				printf("/!\\ /!\\ /!\\ Basic Block  %d  (line %d) might cause an issue\n", bb->index, gimple_lineno(stmt)); 
+			}
+		}
+	}
+}
+
+void bitmap_post_dominance_frontiers (bitmap_head *frontiers, function * fun)
+{
+	edge p;
+	edge_iterator ei;
+	basic_block b;
+
+	FOR_EACH_BB_FN (b, fun)
+	{
+		if (EDGE_COUNT (b->succs) >= 2)
+		{
+			FOR_EACH_EDGE (p, ei, b->succs)
+			{
+				basic_block runner = p->dest;
+				basic_block pdomsb; 
+
+				if (runner == EXIT_BLOCK_PTR_FOR_FN (fun))
+					continue;
+
+				pdomsb = get_immediate_dominator (CDI_POST_DOMINATORS, b);
+				while (runner != pdomsb)
+				{
+					if (!bitmap_set_bit (&frontiers[runner->index], b->index))
+						break;
+					runner = get_immediate_dominator (CDI_POST_DOMINATORS, runner);
+				}
+			}
+		}
+	}
+}
+
+void bitmap_set_post_dominance_frontiers (bitmap_head node_set, bitmap_head *pdf, bitmap_head * pdf_set, function * fun)
+{
+	basic_block bb;
+
+	/* Create the union of each PDF */
+	FOR_ALL_BB_FN( bb, cfun )
+	{
+		if ( bitmap_bit_p( &node_set, bb->index ) )
+		{
+			bitmap_ior_into( pdf_set, &pdf[bb->index] ) ;
+		}
+	}
+
+	/* Remove the nodes that have no other PDF remaining */
+	FOR_ALL_BB_FN( bb, cfun )
+	{
+		if ( bitmap_bit_p( pdf_set, bb->index ) )
+		{
+			bool found = false ;
+			basic_block bb2 ;
+
+			FOR_ALL_BB_FN( bb2, cfun )
+			{
+				// bb2->index != bb->index &&
+				if (!bitmap_bit_p( &node_set, bb2->index ) && bitmap_bit_p( &pdf[bb2->index], bb->index ) )
+				{
+					found = true ;
+				}
+			}
+
+			if ( found == false )
+			{
+					bitmap_clear_bit( pdf_set, bb->index ) ;
+			}
+		}
+	}
+}
+
+void iterated_post_dominance(bitmap_head pdf_node_set, bitmap_head *pdf, bitmap_head * ipdf_set, function * fun)
+{
+	basic_block bb, b;
+	bitmap_head bitmap_tmp, bitmap_test;
+	bitmap_initialize (&bitmap_tmp, &bitmap_default_obstack);
+	bitmap_initialize (&bitmap_test, &bitmap_default_obstack);
+
+	FOR_ALL_BB_FN( bb, fun )
+	{
+		if ( bitmap_bit_p( &pdf_node_set, bb->index ) )
+		{
+			bitmap_copy(&bitmap_test, &pdf_node_set);
+			while(!bitmap_equal_p(&bitmap_tmp, &bitmap_test) /*|| begin*/)
+			{
+				bitmap_copy(&bitmap_tmp, &bitmap_test);
+				FOR_ALL_BB_FN( b, fun )
+				{
+					if(bitmap_bit_p(&pdf[bb->index], b->index))
+					{
+						bitmap_set_bit(&bitmap_test, b->index);
+					}
+				}
+			}	
+			bitmap_copy(&bitmap_test, ipdf_set);
+			bitmap_ior(ipdf_set, &bitmap_test, &bitmap_tmp);	
+		}
+	}
+}
+
+void bitmap_and_pdf_it(function * fun, bitmap_head ipdf_set[])
+{
+	calculate_dominance_info (CDI_POST_DOMINATORS);	
+	bitmap_head *pfrontiers;
+	basic_block bb;
+	pfrontiers = XNEWVEC (bitmap_head, last_basic_block_for_fn (fun));
+
+	FOR_ALL_BB_FN (bb, cfun)
+	{
+		bitmap_initialize (&pfrontiers[bb->index], &bitmap_default_obstack);
+	}
+
+	//Calcul de la frontière de post-dominance de tous les noeuds
+	bitmap_post_dominance_frontiers (pfrontiers, fun);	
+
+	int i;
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
+	{ 
+
+		bitmap_initialize (&ipdf_set[i], &bitmap_default_obstack);
+
+		/* Compute the set regrouping nodes with MPI calls */
+		bitmap_head mpi_set ;
+		bitmap_initialize( &mpi_set,  &bitmap_default_obstack);
+
+		//Si un basic block contient la collective MPI i, on change la valeur du bitmap
+		//On regroupe les basic blocks de la collectives i
+		FOR_ALL_BB_FN (bb, cfun)
+		{
+			if ( bb->aux == (void *) i) 
+			{
+				bitmap_set_bit( &mpi_set, bb->index ) ;
+			}
+		}
+
+		//On cacule la pdf de cet ensemble de basic blocks
+		bitmap_head pdf_set;
+		bitmap_initialize (&pdf_set, &bitmap_default_obstack);
+
+		bitmap_set_post_dominance_frontiers(mpi_set, pfrontiers, &pdf_set, fun);
+
+
+		//Calcul de la frontiere de post-dominance itérée de cette ensemble de noeud
+		iterated_post_dominance(pdf_set, pfrontiers, &ipdf_set[i], fun);
+
+		//Affichage de la pdf_it pour la collectives i
+		// printf( "\n\nIterated PDF for call -- %s -- MPI node set: ", mpi_collective_name[i]) ;
+		// bitmap_print( stdout, &ipdf_set[i], "", "\n" ) ;
+
+		//Les noeuds appartement à cet ensemble sont les basic blocks pouvant causés des dead-locks.
+	}
+
+
+	issue_warnings (ipdf_set, fun);
+}
+
+//------------------------------------------------------------------------//
+//------------------------------------------------------------------------//
+//------------------------------------------------------------------------//
+
 
 //------------------------------------------------------------------------//
 //------------------- FONCTIONS AFFICHAGE CFG ----------------------------//
@@ -243,11 +433,6 @@ static char * cfgviz_generate_filename( function * fun, const char * suffix )
 /* Ecrit la représentation GraphViz du CFG de la fonction dans un fichier .out */
 static void cfgviz_internal_dump( function * fun, FILE * out ) 
 {
-
-	//Idées :
-	// -Si un noeud pose problème le colorier d'une façon différente
-	// -Crée un arc d'une couleur différente vers le(s) noeud(s) pouvant provoquer le deadlock
-
 	basic_block bb; 
 
 	// Print the header line and open the main graph
@@ -352,8 +537,126 @@ static void cfgviz_internal_dump( function * fun, FILE * out )
 	fprintf(out, "}\n");
 }
 
+static void cfgviz_internal_dump2( function * fun, FILE * out , bitmap_head ipdf_set[]) 
+{
+
+	//Idées :
+	// -Si un noeud pose problème le colorier d'une façon différente
+	// -Crée un arc d'une couleur différente vers le(s) noeud(s) pouvant provoquer le deadlock
+
+	basic_block bb; 
+
+	// Print the header line and open the main graph
+	fprintf(out, "Digraph G{\n");
+
+
+	FOR_ALL_BB_FN(bb,cfun)
+	{
+
+		//
+		// Print the basic block BB, with the MPI call if necessary
+		//
+
+		//Noeud avec dead-lock potentiel
+		if(bitmap_bit_p(&ipdf_set[(long)bb->aux], bb->index))
+		{
+			fprintf( out,
+				"%d [color=red, style=filled, label=\"BB %d", bb->index,	bb->index);
+		}
+		else
+		{			
+			fprintf( out,
+				"%d [label=\"BB %d", bb->index,	bb->index);
+		}
+
+
+		// td == 3 && 
+		if((long)bb->aux != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE)
+		{
+
+			gimple_stmt_iterator gsi;
+			gimple * stmt;
+			gsi = gsi_start_bb(bb);
+			stmt = gsi_stmt(gsi);
+
+			/* Iterate on gimple statements in the current basic block */
+			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+			{
+
+				stmt = gsi_stmt(gsi);
+
+				enum mpi_collective_code returned_code ;
+
+				returned_code = LAST_AND_UNUSED_MPI_COLLECTIVE_CODE ;
+
+				if (is_gimple_call (stmt))
+				{
+					tree t ;
+					const char * callee_name ;
+					int i ;
+					bool found = false ;
+
+					t = gimple_call_fndecl( stmt ) ;
+					callee_name = IDENTIFIER_POINTER(DECL_NAME(t)) ;
+
+					i = 0 ;
+					while ( !found && i < LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+					{
+						if ( strncmp( callee_name, mpi_collective_name[i], strlen(
+										mpi_collective_name[i] ) ) == 0 )
+						{
+							found = true ;
+							returned_code = (enum mpi_collective_code) i ;
+						}
+						i++ ;
+					} 
+
+				}
+
+
+				if ( returned_code != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+				{
+					fprintf( out, " \\n %s", mpi_collective_name[returned_code] ) ;
+				}
+			}
+
+			fprintf(out, "\" shape=ellipse]\n");
+
+		}
+
+		else
+		{
+			fprintf( out, "\" shape=ellipse]\n") ;
+		}
+
+		//
+		// Process output edges 
+		//
+		edge_iterator eit;
+		edge e;
+
+		FOR_EACH_EDGE( e, eit, bb->succs )
+		{
+			const char *label = "";
+			if( e->flags == EDGE_TRUE_VALUE )
+				label = "true";
+			else if( e->flags == EDGE_FALSE_VALUE )
+				label = "false";
+
+			fprintf( out, "%d -> %d [color=red label=\"%s\"]\n",
+					bb->index, e->dest->index, label ) ;
+
+		}
+	}
+
+
+
+	// Close the main graph
+	fprintf(out, "}\n");
+}
+
 /* Regroupe les deux fonctions précédentes */
-void cfgviz_dump( function * fun, const char * suffix )
+void cfgviz_dump( function * fun, const char * suffix , bitmap_head ipdf_set[])
 {
 	char * target_filename ; 
 	FILE * out ;
@@ -365,7 +668,23 @@ void cfgviz_dump( function * fun, const char * suffix )
 	if(out == NULL)
 		fprintf(stderr, "Erreur ouverture\n");
 
-	cfgviz_internal_dump( fun, out ) ;
+	bool deadlock_potentiel = false;
+	int i;
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
+		if(bitmap_count_bits( &ipdf_set[i] ) != 0){
+			deadlock_potentiel = true;
+			break;
+		}
+	}
+
+	if ( !deadlock_potentiel )
+	{
+		cfgviz_internal_dump( fun, out ) ;
+	}
+	else
+	{
+		cfgviz_internal_dump2( fun, out, ipdf_set);
+	}
 
 	fclose( out ) ;
 	free( target_filename ) ;
@@ -407,19 +726,23 @@ class my_pass : public gimple_opt_pass
 			//S'il y'en a pas le champs a la valeur LAST_AND_UNUSED_MPI_COLLECTIVE_CODE.
 			clean_aux_field(fun, LAST_AND_UNUSED_MPI_COLLECTIVE_CODE);
 
-			read_and_mark_mpi(fun);
-			cfgviz_dump(fun,"_ini");
+
 			//Découpe les basic blocks qui ont plusieurs collectives MPI.
 			mpi_in_blocks(fun);
 
 
+			//Utilisation de la frontière de post-dominance pour detecter les dead-locks.
+			bitmap_head ipdf_set [LAST_AND_UNUSED_MPI_COLLECTIVE_CODE];
+			bitmap_and_pdf_it(fun, ipdf_set);
+
+
 			//Pour l'affichage du CFG
-			cfgviz_dump(fun,"_split");
-
-
+			cfgviz_dump(fun,"", ipdf_set);
 
 			//On remet à 0 le champs "aux" pour les autres passes de la compilation.
 			clean_aux_field(fun, 0);
+
+			free_dominance_info( CDI_POST_DOMINATORS ) ;
 			return 0;
 		}
 }; 
