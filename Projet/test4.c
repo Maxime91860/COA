@@ -7,9 +7,11 @@ extern void checking_collectives(int collective_id, char * collective_name, int 
 
 int main(int argc, char * argv[])
 {
-	checking_collectives(0, "test", 0, "test");
+	
 
 	MPI_Init(&argc, &argv);
+
+	// checking_collectives(0, "test", 0, "test");
 
 	int i;
 	int a = 2;
