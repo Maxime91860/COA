@@ -41,7 +41,20 @@ const pass_data my_pass_data =
 	0, /* todo_flags_finish */
 }; 
 
+/* Enum to represent the collective operations */
+enum mpi_collective_code {
+#define DEFMPICOLLECTIVES( CODE, NAME ) CODE,
+#include "MPI_collectives.def"
+        LAST_AND_UNUSED_MPI_COLLECTIVE_CODE
+#undef DEFMPICOLLECTIVES
+} ;
 
+/* Name of each MPI collective operations */
+#define DEFMPICOLLECTIVES( CODE, NAME ) NAME,
+const char *const mpi_collective_name[] = {
+#include "MPI_collectives.def"
+} ;
+#undef DEFMPICOLLECTIVES
 
 
 //------------------------------------------------------------------------//
@@ -70,19 +83,105 @@ static void cfgviz_internal_dump( function * fun, FILE * out )
 	// -Si un noeud pose problème le colorier d'une façon différente
 	// -Crée un arc d'une couleur différente vers le(s) noeud(s) pouvant provoquer le deadlock
 
+basic_block bb; 
+
 	// Print the header line and open the main graph
 	fprintf(out, "Digraph G{\n");
 
-	basic_block bb;
 
-	FOR_ALL_BB_FN(bb,fun){
-		fprintf(out,"BB%d\n",bb->index);
-		edge edge;
-		edge_iterator ei;
-		 FOR_EACH_EDGE(edge , ei ,bb->succs){
-		 	fprintf(out, "BB%d -> BB%d\n",bb->index, edge->dest->index );
-		 }
+	FOR_ALL_BB_FN(bb,cfun)
+	{
+
+		//
+		// Print the basic block BB, with the MPI call if necessary
+		//
+
+		// td == 3 && 
+		if((long)bb->aux != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE)
+		{
+			fprintf( out,
+					"%d [label=\"BB %d", bb->index,	bb->index);
+
+			gimple_stmt_iterator gsi;
+			gimple * stmt;
+			gsi = gsi_start_bb(bb);
+			stmt = gsi_stmt(gsi);
+
+			/* Iterate on gimple statements in the current basic block */
+			for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+			{
+
+				stmt = gsi_stmt(gsi);
+
+				enum mpi_collective_code returned_code ;
+
+				returned_code = LAST_AND_UNUSED_MPI_COLLECTIVE_CODE ;
+
+				if (is_gimple_call (stmt))
+				{
+					tree t ;
+					const char * callee_name ;
+					int i ;
+					bool found = false ;
+
+					t = gimple_call_fndecl( stmt ) ;
+					callee_name = IDENTIFIER_POINTER(DECL_NAME(t)) ;
+
+					i = 0 ;
+					while ( !found && i < LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+					{
+						if ( strncmp( callee_name, mpi_collective_name[i], strlen(
+										mpi_collective_name[i] ) ) == 0 )
+						{
+							found = true ;
+							returned_code = (enum mpi_collective_code) i ;
+						}
+						i++ ;
+					} 
+
+				}
+
+
+				if ( returned_code != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+				{
+					fprintf( out, " \\n %s", mpi_collective_name[returned_code] ) ;
+				}
+			}
+
+			fprintf(out, "\" shape=ellipse]\n");
+
+		}
+
+		else
+		{
+			fprintf( out,
+					"%d [label=\"BB %d\" shape=ellipse]\n",
+					bb->index,
+					bb->index
+			       ) ;
+		}
+
+		//
+		// Process output edges 
+		//
+		edge_iterator eit;
+		edge e;
+
+		FOR_EACH_EDGE( e, eit, bb->succs )
+		{
+			const char *label = "";
+			if( e->flags == EDGE_TRUE_VALUE )
+				label = "true";
+			else if( e->flags == EDGE_FALSE_VALUE )
+				label = "false";
+
+			fprintf( out, "%d -> %d [color=red label=\"%s\"]\n",
+					bb->index, e->dest->index, label ) ;
+
+		}
 	}
+
+
 
 	// Close the main graph
 	fprintf(out, "}\n");
