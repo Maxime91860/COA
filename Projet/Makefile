@@ -1,7 +1,6 @@
 CPP=g++
 CC=gcc
 
-FILE=test4.c
 
 MPI_PATH=`dirname \` which mpicc \` `
 MPI_FLAGS=-I$(MPI_PATH)/../include/mpi -L$(MPI_PATH)/../lib -lmpi
