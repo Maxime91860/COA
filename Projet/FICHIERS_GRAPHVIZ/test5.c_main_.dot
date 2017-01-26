@@ -1,0 +1,14 @@
+Digraph G{
+0 [label="BB 0" shape=ellipse]
+0 -> 2 [color=red label=""]
+2 [color=red, style=filled, label="BB 2 \n MPI_Init" shape=ellipse]
+2 -> 3 [color=red label="true"]
+2 -> 4 [color=red label="false"]
+3 [label="BB 3 \n MPI_Barrier" shape=ellipse]
+3 -> 5 [color=red label=""]
+5 [label="BB 5 \n MPI_Allreduce" shape=ellipse]
+5 -> 4 [color=red label=""]
+4 [label="BB 4 \n MPI_Finalize" shape=ellipse]
+4 -> 1 [color=red label=""]
+1 [label="BB 1" shape=ellipse]
+}

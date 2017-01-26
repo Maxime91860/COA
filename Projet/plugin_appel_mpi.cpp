@@ -20,11 +20,14 @@
 #include <tree-pass.h>                                                           
 #include <context.h>                                                             
 #include <function.h>                                                            
-#include <gimple-iterator.h>                                                     
+#include <gimple-iterator.h>      
+#include <c-family/c-common.h>                                               
 
 
 /* Variable globale necéssaire au plugin */
 int plugin_is_GPL_compatible;
+
+int nb_bb_avant_ajout;
 
 /* Objet representant notre passe */
 const pass_data my_pass_data =
@@ -413,6 +416,106 @@ void bitmap_and_pdf_it(function * fun, bitmap_head ipdf_set[])
 
 
 //------------------------------------------------------------------------//
+//------------ FONCTIONS INCLUSION CHECK_COLLECTIVE-----------------------//
+//------------------------------------------------------------------------//
+
+void insert_print_and_CCfunc(function * fun, bitmap_head ipdf_set[])
+{
+
+	basic_block bb;
+	gimple_stmt_iterator gsi;
+	gimple *stmt;
+
+	int i;
+
+	int cpt = 0;
+
+	for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++)
+	{
+		cpt = bitmap_count_bits(&ipdf_set[i]);
+		if(cpt > 0 || MPI_FINALIZE == i )
+		{
+
+			FOR_ALL_BB_FN (bb, fun)
+			{
+				if ( bb->aux == (void *) i) 
+				{
+					/* Iterate on gimple statements in the current basic block */
+					for (gsi = gsi_start_bb (bb); !gsi_end_p (gsi); gsi_next (&gsi))
+					{
+
+						stmt = gsi_stmt(gsi);
+
+						enum mpi_collective_code c;
+						c = is_mpi_call(stmt, bb->index);
+						if ( c != LAST_AND_UNUSED_MPI_COLLECTIVE_CODE )
+						{
+
+							char error_message[cpt*32+2]; 
+							for(int l=0; l<cpt*32+2; l++) error_message[l] = '\0';
+							error_message[0] = '-';
+							error_message[1] = '-';
+							char tmp_message[32]; 
+							for(int l=0; l<32; l++) tmp_message[l] = ' ';
+
+							basic_block bb2;
+						        gimple_stmt_iterator gsi2;
+						        gimple *stmt2;
+
+							FOR_EACH_BB_FN( bb2, fun )
+							{
+								if(bitmap_bit_p(&ipdf_set[i], bb2->index))
+								{	
+									for(int l=0; l<32; l++) tmp_message[l] = '\0';
+									// memset(&tmp_message[0], 0, 32*sizeof(char));
+									gsi2 = gsi_start_bb(bb2);
+									stmt2 = gsi_stmt(gsi2);
+
+									sprintf(&tmp_message[0], "Basic Block  %d  (line %d) , ", bb2->index, gimple_lineno(stmt2));
+									strncat(&error_message[0], &tmp_message[0], 32); 
+
+								}
+							}
+
+							tree MPI_coll_name_tree = fix_string_type( build_string (strlen(mpi_collective_name[i]), mpi_collective_name[i]));	
+							tree MPI_coll_name_ptr = build_pointer_type(TREE_TYPE (TREE_TYPE (MPI_coll_name_tree)));
+							tree MPI_coll_name_arg = build1 (ADDR_EXPR, MPI_coll_name_ptr, MPI_coll_name_tree);
+
+
+
+							tree bb_list_tree = fix_string_type( build_string (cpt*32+2, &error_message[0]));	
+							tree bb_list_ptr = build_pointer_type(TREE_TYPE (TREE_TYPE (bb_list_tree)));
+							tree bb_list_arg = build1 (ADDR_EXPR, bb_list_ptr, bb_list_tree);
+
+
+							tree MPI_coll_id_arg = build_int_cst(integer_type_node, i);
+							tree MPI_coll_line_arg = build_int_cst(integer_type_node, gimple_lineno(stmt));
+
+							tree function_type_list = build_function_type_list(void_type_node, void_type_node, NULL_TREE);
+							tree cc_fn_decl = build_fn_decl("checking_collectives", function_type_list);
+
+
+							gimple * cc_call = gimple_build_call ( cc_fn_decl, 4, MPI_coll_id_arg, MPI_coll_name_arg, MPI_coll_line_arg, bb_list_arg);
+
+							gimple_set_location(cc_call, gimple_location(stmt));
+							gsi_insert_before( &gsi , cc_call, GSI_NEW_STMT);
+
+							gsi_next (&gsi);
+						}
+
+					}	
+				}
+			}
+		}
+
+	}
+}
+
+//------------------------------------------------------------------------//
+//------------------------------------------------------------------------//
+//------------------------------------------------------------------------//
+
+//------------------------------------------------------------------------//
 //------------------- FONCTIONS AFFICHAGE CFG ----------------------------//
 //------------------------------------------------------------------------//
 /* Construit un nom de fichier à partir du nom de la fonction et d'un suffixe */
@@ -537,6 +640,8 @@ static void cfgviz_internal_dump( function * fun, FILE * out )
 	fprintf(out, "}\n");
 }
 
+// bool 
+
 static void cfgviz_internal_dump2( function * fun, FILE * out , bitmap_head ipdf_set[]) 
 {
 
@@ -556,9 +661,16 @@ static void cfgviz_internal_dump2( function * fun, FILE * out , bitmap_head ipdf
 		//
 		// Print the basic block BB, with the MPI call if necessary
 		//
+		bool basic_block_dangeureux = false;
+		int i;
+		for(i=0; i<LAST_AND_UNUSED_MPI_COLLECTIVE_CODE; i++){
+			if(bitmap_bit_p(&ipdf_set[i], bb->index)){
+				basic_block_dangeureux = true;
+			}
+		}
 
 		//Noeud avec dead-lock potentiel
-		if(bitmap_bit_p(&ipdf_set[(long)bb->aux], bb->index))
+		if(basic_block_dangeureux)
 		{
 			fprintf( out,
 				"%d [color=red, style=filled, label=\"BB %d", bb->index,	bb->index);
@@ -738,6 +850,8 @@ class my_pass : public gimple_opt_pass
 
 			//Pour l'affichage du CFG
 			cfgviz_dump(fun,"", ipdf_set);
+
+			insert_print_and_CCfunc(fun, ipdf_set);
 
 			//On remet à 0 le champs "aux" pour les autres passes de la compilation.
 			clean_aux_field(fun, 0);

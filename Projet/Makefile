@@ -9,7 +9,7 @@ PLUGIN_FLAGS=-I`gcc -print-file-name=plugin`/include -fno-rtti $(LIB_FLAGS)
 
 CFLAGS=-g -O3
 
-main : test.pgr test2.pgr test3.pgr test4.pgr
+main : test5.pgr #test2.pgr test3.pgr test4.pgr
 
 
 libplugin.so: plugin_appel_mpi.cpp
@@ -26,6 +26,9 @@ gen_pdf:
 
 clean :
 	rm -rf EXECUTABLES/* FICHIERS_GRAPHVIZ/* libplugin.so libcc.so
+
+visu :
+	evince FICHIERS_PLOT_GRAPHVIZ/*
 
 clean_plot :
 	rm -rf FICHIERS_PLOT_GRAPHVIZ/*
