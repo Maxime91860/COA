@@ -396,7 +396,7 @@ void bitmap_and_pdf_it(function * fun, bitmap_head ipdf_set[])
 		bitmap_set_post_dominance_frontiers(mpi_set, pfrontiers, &pdf_set, fun);
 
 
-		//Calcul de la frontiere de post-dominance itérée de cette ensemble de noeud
+		//Calcul de la frontiere de post-dominance itérée de cet ensemble de noeud
 		iterated_post_dominance(pdf_set, pfrontiers, &ipdf_set[i], fun);
 
 		//Affichage de la pdf_it pour la collectives i

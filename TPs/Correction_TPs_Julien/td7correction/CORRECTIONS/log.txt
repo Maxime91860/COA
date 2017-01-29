@@ -1,0 +1,343 @@
+g++ -I`gcc -print-file-name=plugin`/include -fno-rtti -g -Wall -shared -fPIC -o TP7_1.so plugin_TP7_1.cpp
+gcc test4.c -g -O3 -o TP7_1.pgr -I`dirname \` which mpicc \` `/../include/mpi -L`dirname \` which mpicc \` `/../lib -lmpi -fplugin=./TP7_1.so -L. -lcc
+plugin_init: Entering...
+plugin_init: Check ok...
+plugin_init: Pass added...
+
+
+
+/************************************************************************************************************************/
+/************************************************************************************************************************/
+/***********************************            main               ***********************************/
+/************************************************************************************************************************/
+/************************************************************************************************************************/
+
+
+
+plugin: gate... 
+	 ... in function main
+plugin: execute...
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD2                        *************************/
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+
+	 ... in function main
+          |||++||| BLOCK INDEX 2 : LINE 10
+          |||++|||      - gimple statement is a function call: function called is " MPI_Init " 
+          |||++|||      - gimple statement is a function call: function called is " MPI_Comm_rank " 
+          |||++||| BLOCK INDEX 3 : LINE 24
+          |||++|||      - gimple statement is a function call: function called is " MPI_Barrier " 
+          |||++||| BLOCK INDEX 4 : LINE 29
+          |||++|||      - gimple statement is a function call: function called is " MPI_Barrier " 
+          |||++|||      - gimple statement is a function call: function called is " MPI_Barrier " 
+          |||++||| BLOCK INDEX 5 : LINE 33
+          |||++||| BLOCK INDEX 6 : LINE 37
+          |||++|||      - gimple statement is a function call: function called is " MPI_Barrier " 
+          |||++||| BLOCK INDEX 7 : LINE 49
+          |||++|||      - gimple statement is a function call: function called is " MPI_Barrier " 
+          |||++||| BLOCK INDEX 8 : LINE 52
+          |||++||| BLOCK INDEX 9 : LINE 21
+          |||++||| BLOCK INDEX 10 : LINE 58
+          |||++|||      - gimple statement is a function call: function called is " MPI_Finalize " 
+[GRAPHVIZ] Generating CFG of function main in file <main_test4.c_9_0_ini.dot>
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD3                        *************************/
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+
+    -->   |||++||| BB 2 [MPI CALL] Found call to MPI_Init
+    -->   |||++||| BB 3 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 6 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 7 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 10 [MPI CALL] Found call to MPI_Finalize
+[GRAPHVIZ] Generating CFG of function main in file <main_test4.c_9_1_mpi.dot>
+    -->   |||++||| BB 2 [MPI CALL] Found call to MPI_Init
+ == BB 2 == contains 1 MPI collective(s)
+    -->   |||++||| BB 3 [MPI CALL] Found call to MPI_Barrier
+ == BB 3 == contains 1 MPI collective(s)
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+ == BB 4 == contains 2 MPI collective(s)
+ == BB 5 == contains 0 MPI collective(s)
+    -->   |||++||| BB 6 [MPI CALL] Found call to MPI_Barrier
+ == BB 6 == contains 1 MPI collective(s)
+    -->   |||++||| BB 7 [MPI CALL] Found call to MPI_Barrier
+ == BB 7 == contains 1 MPI collective(s)
+ == BB 8 == contains 0 MPI collective(s)
+ == BB 9 == contains 0 MPI collective(s)
+    -->   |||++||| BB 10 [MPI CALL] Found call to MPI_Finalize
+ == BB 10 == contains 1 MPI collective(s)
+    -->   |||++||| BB 2 [MPI CALL] Found call to MPI_Init
+ == BB 2 == contains 1 MPI collective(s)
+    -->   |||++||| BB 3 [MPI CALL] Found call to MPI_Barrier
+ == BB 3 == contains 1 MPI collective(s)
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+ == BB 4 == contains 2 MPI collective(s)
+[SPLIT] Need to split BB 4 (2 collectives)
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 11 [MPI CALL] Found call to MPI_Barrier
+ == BB 11 == contains 1 MPI collective(s)
+ == BB 5 == contains 0 MPI collective(s)
+    -->   |||++||| BB 6 [MPI CALL] Found call to MPI_Barrier
+ == BB 6 == contains 1 MPI collective(s)
+    -->   |||++||| BB 7 [MPI CALL] Found call to MPI_Barrier
+ == BB 7 == contains 1 MPI collective(s)
+ == BB 8 == contains 0 MPI collective(s)
+ == BB 9 == contains 0 MPI collective(s)
+    -->   |||++||| BB 10 [MPI CALL] Found call to MPI_Finalize
+ == BB 10 == contains 1 MPI collective(s)
+    -->   |||++||| BB 2 [MPI CALL] Found call to MPI_Init
+    -->   |||++||| BB 3 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 4 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 11 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 6 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 7 [MPI CALL] Found call to MPI_Barrier
+    -->   |||++||| BB 10 [MPI CALL] Found call to MPI_Finalize
+[GRAPHVIZ] Generating CFG of function main in file <main_test4.c_9_2_split.dot>
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD4                        *************************/
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+
+DOMINATORS:
+Basic block BB 0 dominates : { BB 2 } { BB 9 } { BB 10 } { BB 3 } { BB 8 } { BB 7 } { BB 4 } { BB 11 } { BB 5 } { BB 6 }
+Basic block BB 2 dominates : { BB 9 } { BB 10 } { BB 3 } { BB 8 } { BB 7 } { BB 4 } { BB 11 } { BB 5 } { BB 6 }
+Basic block BB 3 dominates : { BB 8 } { BB 7 } { BB 4 } { BB 11 } { BB 5 } { BB 6 }
+Basic block BB 4 dominates : { BB 11 } { BB 5 } { BB 6 }
+Basic block BB 11 dominates : { BB 5 } { BB 6 }
+Basic block BB 5 dominates :
+Basic block BB 6 dominates :
+Basic block BB 7 dominates :
+Basic block BB 8 dominates :
+Basic block BB 9 dominates : { BB 10 } { BB 3 } { BB 8 } { BB 7 } { BB 4 } { BB 11 } { BB 5 } { BB 6 }
+Basic block BB 10 dominates :
+Basic block BB 1 dominates :
+POST-DOMINATORS:
+Basic block BB 0 dominates :
+Basic block BB 2 dominates :
+Basic block BB 3 dominates :
+Basic block BB 4 dominates :
+Basic block BB 11 dominates : { BB 4 }
+Basic block BB 5 dominates :
+Basic block BB 6 dominates :
+Basic block BB 7 dominates :
+Basic block BB 8 dominates : { BB 7 } { BB 6 } { BB 5 } { BB 11 } { BB 3 } { BB 4 }
+Basic block BB 9 dominates : { BB 8 } { BB 2 } { BB 7 } { BB 6 } { BB 5 } { BB 11 } { BB 3 } { BB 4 }
+Basic block BB 10 dominates : { BB 9 } { BB 8 } { BB 2 } { BB 7 } { BB 6 } { BB 5 } { BB 11 } { BB 3 } { BB 4 }
+Basic block BB 1 dominates : { BB 10 } { BB 9 } { BB 8 } { BB 2 } { BB 7 } { BB 6 } { BB 5 } { BB 11 } { BB 3 } { BB 4 }
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 2   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 2) = 1
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 2) = 20
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 3   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 3) = 5
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 3) = 18
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 4   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 4) = 10
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 4) = 17
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 11   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 11) = 11
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 11) = 16
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 5   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 5) = 12
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 5) = 13
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 6   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 6) = 14
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 6) = 15
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 7   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 7) = 8
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 7) = 9
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 8   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 8) = 6
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 8) = 7
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 9   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 9) = 2
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 9) = 19
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$   Dominance Frontier values for BB 10   $
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+entry bb_dom_dfs_in (CDI_DOMINATORS, BB 10) = 3
+exit bb_dom_dfs_out (CDI_DOMINATORS, BB 10) = 4
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+$$       Dominance Frontier values      $$
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+Basic block 0 has empty PDF
+Basic block 1 has empty PDF
+Basic block 2 has empty PDF
+Basic block 3 has 1 basic blocks in its PDF:
+------- Basic Block 9
+Basic block 4 has 1 basic blocks in its PDF:
+------- Basic Block 3
+Basic block 5 has 1 basic blocks in its PDF:
+------- Basic Block 11
+Basic block 6 has 1 basic blocks in its PDF:
+------- Basic Block 11
+Basic block 7 has 1 basic blocks in its PDF:
+------- Basic Block 3
+Basic block 8 has 1 basic blocks in its PDF:
+------- Basic Block 9
+Basic block 9 has 1 basic blocks in its PDF:
+------- Basic Block 9
+Basic block 10 has empty PDF
+Basic block 11 has 1 basic blocks in its PDF:
+------- Basic Block 3
+
+
+
+/****************************************************************************************************/
+/****************************************************************************************************/
+/*************************                       TD5                        *************************/
+/****************************************************************************************************/
+/****************************************************************************************************/
+
+
+
+PDF Node 0: 
+PDF Node 2: 
+PDF Node 3: 9
+PDF Node 4: 3
+PDF Node 11: 3
+PDF Node 5: 11
+PDF Node 6: 11
+PDF Node 7: 3
+PDF Node 8: 9
+PDF Node 9: 9
+PDF Node 10: 
+PDF Node 1: 
+MPI node set: 2
++++++ Entering PDFSet
+Partial PDF of set: 
+Final PDF of set: 
++++++ Exiting PDFSet
+Pdf for MPI node set: 
+NO ISSUES WITH MPI CALLS : MPI_Init
+
+
+Iterated PDF for call -- MPI_Init -- MPI node set: 
+MPI node set: 10
++++++ Entering PDFSet
+Partial PDF of set: 
+Final PDF of set: 
++++++ Exiting PDFSet
+Pdf for MPI node set: 
+NO ISSUES WITH MPI CALLS : MPI_Finalize
+
+
+Iterated PDF for call -- MPI_Finalize -- MPI node set: 
+MPI node set: 
++++++ Entering PDFSet
+Partial PDF of set: 
+Final PDF of set: 
++++++ Exiting PDFSet
+Pdf for MPI node set: 
+NO ISSUES WITH MPI CALLS : MPI_Reduce
+
+
+Iterated PDF for call -- MPI_Reduce -- MPI node set: 
+MPI node set: 
++++++ Entering PDFSet
+Partial PDF of set: 
+Final PDF of set: 
++++++ Exiting PDFSet
+Pdf for MPI node set: 
+NO ISSUES WITH MPI CALLS : MPI_AllReduce
+
+
+Iterated PDF for call -- MPI_AllReduce -- MPI node set: 
+MPI node set: 3, 4, 6, 7, 11
++++++ Entering PDFSet
+Partial PDF of set: 3, 9, 11
+	Will not remove BB11 because of BB5
+	Will not remove BB9 because of BB8
+	Will not remove BB9 because of BB9
+Final PDF of set: 9, 11
++++++ Exiting PDFSet
+Pdf for MPI node set: 9, 11
+ISSUES WITH MPI CALLS : MPI_Barrier
+
+
+Iterated PDF for call -- MPI_Barrier -- MPI node set: 3, 9, 11
+
+
+----------- Problems for MPI_Init ---------
+
+
+
+
+----------- Problems for MPI_Finalize ---------
+
+
+
+
+----------- Problems for MPI_Reduce ---------
+
+
+
+
+----------- Problems for MPI_AllReduce ---------
+
+
+
+
+----------- Problems for MPI_Barrier ---------
+
+
+/!\ /!\ /!\ Basic Block  3  (line 24) might cause an issue
+/!\ /!\ /!\ Basic Block  11  (line 30) might cause an issue
+/!\ /!\ /!\ Basic Block  9  (line 21) might cause an issue
+
+
+================== FIN ==================
+
+rm TP7_1.so

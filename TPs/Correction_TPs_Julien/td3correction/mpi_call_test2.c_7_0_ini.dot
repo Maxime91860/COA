@@ -1,0 +1,14 @@
+Digraph G{
+0 [label="BB 0" shape=ellipse]
+0 -> 2 [color=red label=""]
+2 [label="BB 2" shape=ellipse]
+2 -> 3 [color=red label="true"]
+2 -> 4 [color=red label="false"]
+3 [label="BB 3" shape=ellipse]
+3 -> 5 [color=red label=""]
+4 [label="BB 4" shape=ellipse]
+4 -> 5 [color=red label=""]
+5 [label="BB 5" shape=ellipse]
+5 -> 1 [color=red label=""]
+1 [label="BB 1" shape=ellipse]
+}

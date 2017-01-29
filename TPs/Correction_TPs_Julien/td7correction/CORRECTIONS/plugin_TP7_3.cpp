@@ -1286,7 +1286,7 @@ void td7_insert_print_and_CCfunc(function * fun, bitmap_head ipdf_set[])
 								if(bitmap_bit_p(&ipdf_set[i], bb2->index))
 								{	
 									for(int l=0; l<32; l++) tmp_message[l] = '\0';
-//									memset(&tmp_message[0], 0, 32*sizeof(char));
+									// memset(&tmp_message[0], 0, 32*sizeof(char));
 									gsi2 = gsi_start_bb(bb2);
 									stmt2 = gsi_stmt(gsi2);
 									printf("...... Basic Block  %d  (line %d)\n", bb2->index, gimple_lineno(stmt2));
@@ -1336,8 +1336,6 @@ void td7_insert_print_and_CCfunc(function * fun, bitmap_head ipdf_set[])
 		}
 
 	}
-
-
 }
 
 
